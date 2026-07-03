@@ -1,10 +1,11 @@
-# Sonsuz Simya
+# Element Simyası
 
-[neal.fun/infinite-craft](https://neal.fun/infinite-craft/) ve "Sonsuz Zanaat: Simya" tarzı,
-element birleştirerek yeni elementler keşfettiğin bir mobil oyun (React Native / Expo).
+Element birleştirerek yeni elementler keşfettiğin bir "crafting" mobil oyunu (React Native / Expo).
+neal.fun'daki Infinite Craft ve benzeri simya/element birleştirme oyunlarından ilham alır.
 
 4 temel elementle (Su, Ateş, Rüzgar, Toprak) başlarsın; onları çalışma alanına sürükleyip
-üst üste bırakarak birleştirir, yeni elementler keşfedersin (Buhar, Lav, Bitki, İnsan, Şehir...).
+üst üste bırakarak birleştirir, yeni elementler keşfedersin (Buhar, Lav, Bitki, İnsan, Şehir,
+Roket, Ejderha, Aşk...). 180'in üzerinde element ve tarif içerir.
 
 ## Geliştirme
 

@@ -117,7 +117,7 @@ export default function CraftGame() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Sonsuz Simya</Text>
+        <Text style={styles.title}>Element Simyası</Text>
         <Text style={styles.subtitle}>
           Keşfedilen: {discovered.size} / {Object.keys(ELEMENTS).length}
         </Text>

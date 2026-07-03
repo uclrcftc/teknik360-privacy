@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "Sonsuz Simya",
-    "slug": "sonsuz-simya",
+    "name": "Element Simyası",
+    "slug": "element-simyasi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.teknik360.sonsuzsimya"
+      "bundleIdentifier": "com.teknik360.elementsimyasi"
     },
     "android": {
-      "package": "com.teknik360.sonsuzsimya",
+      "package": "com.teknik360.elementsimyasi",
       "adaptiveIcon": {
         "backgroundColor": "#f4efe4",
         "foregroundImage": "./assets/android-icon-foreground.png",
