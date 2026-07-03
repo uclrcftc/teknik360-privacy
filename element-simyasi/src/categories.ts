@@ -10,7 +10,8 @@ export type CategoryId =
   | 'space'
   | 'mythology'
   | 'food'
-  | 'abstract';
+  | 'abstract'
+  | 'household';
 
 export interface CategoryDef {
   id: CategoryId;
@@ -29,6 +30,7 @@ export const CATEGORIES: Record<CategoryId, CategoryDef> = {
   mythology: { id: 'mythology', label: 'Mitoloji', color: '#9c4fae' },
   food: { id: 'food', label: 'Yiyecek', color: '#d1636f' },
   abstract: { id: 'abstract', label: 'Soyut', color: '#a2799e' },
+  household: { id: 'household', label: 'Ev Eşyaları', color: '#6b9080' },
 };
 
 export const CATEGORY_ORDER: CategoryId[] = [
@@ -42,6 +44,7 @@ export const CATEGORY_ORDER: CategoryId[] = [
   'mythology',
   'food',
   'abstract',
+  'household',
 ];
 
 const GROUPS: Record<CategoryId, ElementId[]> = {
@@ -71,6 +74,8 @@ const GROUPS: Record<CategoryId, ElementId[]> = {
   technology: [
     'computer', 'internet', 'phone', 'television', 'camera', 'rocket', 'satellite', 'astronaut',
     'alien', 'ufo', 'airplane', 'wheel', 'car', 'train', 'ai',
+    'keyboard', 'computermouse', 'headphones', 'speaker', 'battery', 'lightbulb', 'fridge',
+    'watch', 'atm', 'creditcard',
   ],
   space: ['star', 'moon', 'comet', 'meteor', 'planet', 'galaxy', 'universe', 'blackhole'],
   mythology: [
@@ -82,6 +87,12 @@ const GROUPS: Record<CategoryId, ElementId[]> = {
     'chocolate', 'icecream', 'pizza', 'salt',
   ],
   abstract: ['time', 'love', 'music', 'art', 'dance', 'dream', 'nightmare', 'soul'],
+  household: [
+    'jar', 'wallet', 'glasses', 'mirror', 'umbrella', 'doorkey', 'lock', 'soap', 'candle',
+    'perfume', 'guitar', 'piano', 'paper', 'book', 'pen', 'pencil', 'newspaper', 'map', 'kite',
+    'balloon', 'pool', 'pot', 'pan', 'knife', 'spoon', 'chair', 'door', 'garden', 'window',
+    'toilet', 'shower', 'bed', 'pillow', 'blanket',
+  ],
 };
 
 const LOOKUP: Partial<Record<ElementId, CategoryId>> = {};
