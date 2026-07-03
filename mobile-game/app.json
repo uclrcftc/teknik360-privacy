@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "2048 Birleştir",
+    "slug": "teknik360-2048",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.teknik360.merge2048"
+    },
+    "android": {
+      "package": "com.teknik360.merge2048",
+      "adaptiveIcon": {
+        "backgroundColor": "#faf8ef",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
