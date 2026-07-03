@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BASE_ELEMENT_IDS, combine, ELEMENTS, ElementId } from './elements';
 import { ITEM_SIZE, initialDiscovered, nextUid, overlaps, WorkspaceItem } from './gameLogic';
 import WorkspaceTile from './WorkspaceTile';
-import DotGrid from './DotGrid';
+import ConstellationBackground from './ConstellationBackground';
 import { useTheme } from './theme';
 
 const DISCOVERED_KEY = 'sonsuz-simya.discovered';
@@ -164,7 +164,13 @@ export default function CraftGame() {
           end={{ x: 0.9, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <DotGrid width={WORKSPACE_WIDTH} height={WORKSPACE_HEIGHT} color={theme.gridDot} />
+        <ConstellationBackground
+          width={WORKSPACE_WIDTH}
+          height={WORKSPACE_HEIGHT}
+          dotColor={theme.constellationDot}
+          hubColor={theme.constellationDotHub}
+          lineColor={theme.constellationLine}
+        />
         <Pressable
           style={[styles.clearButton, { backgroundColor: theme.accent }]}
           onPress={clearWorkspace}
@@ -173,7 +179,6 @@ export default function CraftGame() {
         </Pressable>
         {items.length === 0 && (
           <>
-            <Text style={[styles.watermark, { color: theme.watermark }]}>⚗️</Text>
             <Text style={[styles.emptyHint, { color: theme.hintText }]}>
               Aşağıdan bir element dokun, sonra iki elementi üst üste sürükleyerek birleştir!
             </Text>
@@ -275,13 +280,6 @@ const styles = StyleSheet.create({
   clearButtonText: {
     fontSize: 12,
     fontWeight: '700',
-  },
-  watermark: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    fontSize: 160,
-    transform: [{ translateX: -80 }, { translateY: -110 }],
   },
   emptyHint: {
     position: 'absolute',

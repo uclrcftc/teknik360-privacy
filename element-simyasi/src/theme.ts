@@ -6,13 +6,14 @@ export interface Palette {
   surface: string;
   surfaceBorder: string;
   surfaceGradient: [string, string, string];
-  gridDot: string;
+  constellationDot: string;
+  constellationDotHub: string;
+  constellationLine: string;
   headerTitle: string;
   headerSubtitle: string;
   accent: string;
   accentText: string;
   hintText: string;
-  watermark: string;
   chipBg: string;
   chipBorder: string;
   chipText: string;
@@ -34,14 +35,15 @@ const light: Palette = {
   background: '#f4efe4',
   surface: '#fbf8f1',
   surfaceBorder: '#e2ddd3',
-  surfaceGradient: ['#fdfbf6', '#f6efe0', '#ecdfc6'],
-  gridDot: 'rgba(138, 109, 74, 0.16)',
+  surfaceGradient: ['#ffffff', '#fbfbfd', '#f3f4f7'],
+  constellationDot: 'rgba(60, 66, 82, 0.30)',
+  constellationDotHub: 'rgba(45, 50, 64, 0.55)',
+  constellationLine: 'rgba(60, 66, 82, 0.14)',
   headerTitle: '#4a4438',
   headerSubtitle: '#8a8071',
   accent: '#8a6d4a',
   accentText: '#fff8ee',
   hintText: '#b0a68f',
-  watermark: 'rgba(138, 109, 74, 0.08)',
   chipBg: '#ffffff',
   chipBorder: '#e2ddd3',
   chipText: '#4a4438',
@@ -63,14 +65,15 @@ const dark: Palette = {
   background: '#1c1712',
   surface: '#241d16',
   surfaceBorder: '#3a2f22',
-  surfaceGradient: ['#2a2118', '#221a13', '#160f0a'],
-  gridDot: 'rgba(212, 167, 101, 0.10)',
+  surfaceGradient: ['#151922', '#10131a', '#0a0c11'],
+  constellationDot: 'rgba(210, 218, 235, 0.28)',
+  constellationDotHub: 'rgba(225, 232, 245, 0.55)',
+  constellationLine: 'rgba(210, 218, 235, 0.13)',
   headerTitle: '#f3ead9',
   headerSubtitle: '#b3a488',
   accent: '#d4a765',
   accentText: '#241d16',
   hintText: '#6f6455',
-  watermark: 'rgba(212, 167, 101, 0.07)',
   chipBg: '#2c241a',
   chipBorder: '#40352490',
   chipText: '#f3ead9',
