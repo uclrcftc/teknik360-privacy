@@ -16,9 +16,7 @@ function App() {
           Dört temel elementi birleştirerek yüzlerce yeni element keşfet.
           Basit bir dokunuşla başlayan, sonu olmayan bir simya yolculuğu.
         </p>
-        <a className="cta" href="#">
-          Uygulamayı Keşfet
-        </a>
+        <span className="cta cta--soon">Yakında Mağazalarda</span>
       </div>
 
       <div className="hint">Sahneyi döndürmek için sürükle</div>

@@ -1,0 +1,46 @@
+name: Deploy 3D web experience to GitHub Pages
+
+# Manual trigger only. This repo's root already serves a privacy-policy
+# page; enabling this would make GitHub Actions the Pages source and
+# replace whatever is currently configured under Settings > Pages, so it
+# is intentionally not run automatically on push. Trigger it yourself
+# from the Actions tab once you've set Pages source to "GitHub Actions".
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: element-simyasi-web/package-lock.json
+      - run: npm ci
+        working-directory: element-simyasi-web
+      - run: npm run build
+        working-directory: element-simyasi-web
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: element-simyasi-web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

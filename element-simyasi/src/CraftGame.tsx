@@ -11,12 +11,15 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { BASE_ELEMENT_IDS, combine, ELEMENTS, ElementId } from './elements';
 import { CATEGORIES, CATEGORY_ORDER, CategoryId, categoryOf } from './categories';
 import { hexToRgba } from './colorUtils';
 import { ITEM_SIZE, initialDiscovered, nextUid, overlaps, WorkspaceItem } from './gameLogic';
 import WorkspaceTile from './WorkspaceTile';
 import ConstellationBackground from './ConstellationBackground';
+import AdBanner from './AdBanner';
+import Onboarding, { ONBOARDING_KEY } from './Onboarding';
 import { useTheme } from './theme';
 
 const DISCOVERED_KEY = 'sonsuz-simya.discovered';
@@ -34,6 +37,7 @@ export default function CraftGame() {
   const [toast, setToast] = useState<{ message: string; kind: ToastKind } | null>(null);
   const [shakeUids, setShakeUids] = useState<string[]>([]);
   const [shakeToken, setShakeToken] = useState(0);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const spawnCount = useRef(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastOpacity = useRef(new Animated.Value(0)).current;
@@ -50,12 +54,20 @@ export default function CraftGame() {
       }
       setLoaded(true);
     });
+    AsyncStorage.getItem(ONBOARDING_KEY).then((value) => {
+      if (!value) setShowOnboarding(true);
+    });
   }, []);
 
   useEffect(() => {
     if (!loaded) return;
     AsyncStorage.setItem(DISCOVERED_KEY, JSON.stringify([...discovered]));
   }, [discovered, loaded]);
+
+  function dismissOnboarding() {
+    setShowOnboarding(false);
+    AsyncStorage.setItem(ONBOARDING_KEY, '1');
+  }
 
   function showToast(message: string, kind: ToastKind) {
     setToast({ message, kind });
@@ -70,6 +82,7 @@ export default function CraftGame() {
   }
 
   function spawnElement(id: ElementId) {
+    Haptics.selectionAsync();
     const cols = Math.max(1, Math.floor((WORKSPACE_WIDTH - 20) / (ITEM_SIZE + 12)));
     const index = spawnCount.current % (cols * 3);
     spawnCount.current += 1;
@@ -100,6 +113,7 @@ export default function CraftGame() {
         setShakeUids([moved.uid, partner.uid]);
         setShakeToken((t) => t + 1);
         showToast('Tepkime yok', 'none');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         return prev;
       }
 
@@ -110,6 +124,11 @@ export default function CraftGame() {
         next.add(resultId);
         return next;
       });
+      if (isNew) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
       showToast(
         isNew
           ? `Yeni keşif: ${ELEMENTS[resultId].emoji} ${ELEMENTS[resultId].name}`
@@ -273,6 +292,9 @@ export default function CraftGame() {
           )}
         </ScrollView>
       </View>
+
+      <AdBanner />
+      <Onboarding visible={showOnboarding} theme={theme} onDismiss={dismissOnboarding} />
     </View>
   );
 }
