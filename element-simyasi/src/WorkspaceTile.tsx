@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, PanResponder, Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ELEMENTS } from './elements';
+import { CATEGORIES, categoryOf } from './categories';
+import { hexToRgba } from './colorUtils';
 import { ITEM_SIZE, WorkspaceItem } from './gameLogic';
 import { Palette } from './theme';
 
@@ -15,6 +17,7 @@ interface Props {
 
 export default function WorkspaceTile({ item, theme, shakeSignal, onMove, onRelease, onRemove }: Props) {
   const def = ELEMENTS[item.elementId];
+  const categoryColor = CATEGORIES[categoryOf(item.elementId)].color;
   const start = useRef({ x: item.x, y: item.y });
   const scale = useRef(new Animated.Value(0)).current;
   const shakeX = useRef(new Animated.Value(0)).current;
@@ -68,7 +71,7 @@ export default function WorkspaceTile({ item, theme, shakeSignal, onMove, onRele
           left: item.x - ITEM_SIZE / 2,
           top: item.y - ITEM_SIZE / 2,
           backgroundColor: theme.tileBg,
-          borderColor: theme.tileBorder,
+          borderColor: hexToRgba(categoryColor, 0.45),
           transform: [{ scale }, { translateX: shakeX }],
         },
       ]}
@@ -81,7 +84,14 @@ export default function WorkspaceTile({ item, theme, shakeSignal, onMove, onRele
       >
         <Text style={[styles.removeText, { color: theme.removeText }]}>×</Text>
       </Pressable>
-      <Text style={styles.emoji}>{def.emoji}</Text>
+      <View
+        style={[
+          styles.badge,
+          { backgroundColor: hexToRgba(categoryColor, 0.16), borderColor: hexToRgba(categoryColor, 0.5) },
+        ]}
+      >
+        <Text style={styles.emoji}>{def.emoji}</Text>
+      </View>
       <Text style={[styles.name, { color: theme.tileText }]} numberOfLines={1}>
         {def.name}
       </Text>
@@ -105,12 +115,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     userSelect: 'none',
   },
+  badge: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   emoji: {
-    fontSize: 32,
+    fontSize: 28,
   },
   name: {
     fontSize: 12,
-    marginTop: 2,
+    marginTop: 4,
     fontWeight: '600',
     maxWidth: ITEM_SIZE - 12,
   },

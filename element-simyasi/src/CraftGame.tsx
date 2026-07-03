@@ -12,6 +12,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BASE_ELEMENT_IDS, combine, ELEMENTS, ElementId } from './elements';
+import { CATEGORIES, CATEGORY_ORDER, CategoryId, categoryOf } from './categories';
+import { hexToRgba } from './colorUtils';
 import { ITEM_SIZE, initialDiscovered, nextUid, overlaps, WorkspaceItem } from './gameLogic';
 import WorkspaceTile from './WorkspaceTile';
 import ConstellationBackground from './ConstellationBackground';
@@ -129,12 +131,18 @@ export default function CraftGame() {
     setItems([]);
   }
 
-  const discoveredList = useMemo(() => {
-    const list = [...discovered]
-      .map((id) => ELEMENTS[id])
-      .filter((el) => el.name.toLocaleLowerCase('tr').includes(query.toLocaleLowerCase('tr')));
-    list.sort((a, b) => a.name.localeCompare(b.name, 'tr'));
-    return list;
+  const groupedDiscovered = useMemo(() => {
+    const q = query.toLocaleLowerCase('tr');
+    const groups: { category: CategoryId; items: (typeof ELEMENTS)[ElementId][] }[] = [];
+    for (const category of CATEGORY_ORDER) {
+      const items = [...discovered]
+        .filter((id) => categoryOf(id) === category)
+        .map((id) => ELEMENTS[id])
+        .filter((el) => el.name.toLocaleLowerCase('tr').includes(q))
+        .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+      if (items.length > 0) groups.push({ category, items });
+    }
+    return groups;
   }, [discovered, query]);
 
   const toastBg = toast?.kind === 'none' ? '#b5453880' : theme.toastBg;
@@ -222,18 +230,43 @@ export default function CraftGame() {
           value={query}
           onChangeText={setQuery}
         />
-        <ScrollView contentContainerStyle={styles.chipList}>
-          {discoveredList.map((el) => (
-            <Pressable
-              key={el.id}
-              style={[styles.chip, { backgroundColor: theme.chipBg, borderColor: theme.chipBorder }]}
-              onPress={() => spawnElement(el.id)}
-            >
-              <Text style={styles.chipEmoji}>{el.emoji}</Text>
-              <Text style={[styles.chipName, { color: theme.chipText }]}>{el.name}</Text>
-            </Pressable>
-          ))}
-          {discoveredList.length === 0 && (
+        <ScrollView contentContainerStyle={styles.chipScroll}>
+          {groupedDiscovered.map(({ category, items }) => {
+            const color = CATEGORIES[category].color;
+            return (
+              <View key={category} style={styles.categoryGroup}>
+                <View style={styles.categoryHeader}>
+                  <View style={[styles.categoryDot, { backgroundColor: color }]} />
+                  <Text style={[styles.categoryLabel, { color: theme.headerSubtitle }]}>
+                    {CATEGORIES[category].label} · {items.length}
+                  </Text>
+                </View>
+                <View style={styles.chipList}>
+                  {items.map((el) => (
+                    <Pressable
+                      key={el.id}
+                      style={[
+                        styles.chip,
+                        { backgroundColor: theme.chipBg, borderColor: hexToRgba(color, 0.4) },
+                      ]}
+                      onPress={() => spawnElement(el.id)}
+                    >
+                      <View
+                        style={[
+                          styles.chipBadge,
+                          { backgroundColor: hexToRgba(color, 0.16), borderColor: hexToRgba(color, 0.5) },
+                        ]}
+                      >
+                        <Text style={styles.chipEmoji}>{el.emoji}</Text>
+                      </View>
+                      <Text style={[styles.chipName, { color: theme.chipText }]}>{el.name}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            );
+          })}
+          {groupedDiscovered.length === 0 && (
             <Text style={[styles.noResults, { color: theme.hintText }]}>
               Eşleşen element bulunamadı
             </Text>
@@ -316,11 +349,33 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 8,
   },
+  chipScroll: {
+    paddingBottom: 20,
+  },
+  categoryGroup: {
+    marginBottom: 16,
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  categoryDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  categoryLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
   chipList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    paddingBottom: 20,
   },
   chip: {
     borderRadius: 10,
@@ -330,13 +385,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 76,
   },
+  chipBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   chipEmoji: {
-    fontSize: 22,
+    fontSize: 20,
   },
   chipName: {
     fontSize: 11,
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: 5,
   },
   noResults: {
     fontSize: 13,
