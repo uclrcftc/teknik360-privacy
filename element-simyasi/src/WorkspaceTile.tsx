@@ -1,18 +1,49 @@
-import React, { useRef } from 'react';
-import { PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, PanResponder, Pressable, StyleSheet, Text } from 'react-native';
 import { ELEMENTS } from './elements';
 import { ITEM_SIZE, WorkspaceItem } from './gameLogic';
+import { Palette } from './theme';
 
 interface Props {
   item: WorkspaceItem;
+  theme: Palette;
+  shakeSignal: number;
   onMove: (uid: string, x: number, y: number) => void;
   onRelease: (uid: string) => void;
   onRemove: (uid: string) => void;
 }
 
-export default function WorkspaceTile({ item, onMove, onRelease, onRemove }: Props) {
+export default function WorkspaceTile({ item, theme, shakeSignal, onMove, onRelease, onRemove }: Props) {
   const def = ELEMENTS[item.elementId];
   const start = useRef({ x: item.x, y: item.y });
+  const scale = useRef(new Animated.Value(0)).current;
+  const shakeX = useRef(new Animated.Value(0)).current;
+  const lastShake = useRef(shakeSignal);
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: 1,
+      friction: 5,
+      tension: 80,
+      useNativeDriver: true,
+    }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!shakeSignal || shakeSignal === lastShake.current) {
+      lastShake.current = shakeSignal;
+      return;
+    }
+    lastShake.current = shakeSignal;
+    Animated.sequence([
+      Animated.timing(shakeX, { toValue: 8, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeX, { toValue: -8, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeX, { toValue: 6, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeX, { toValue: -6, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeX, { toValue: 0, duration: 60, useNativeDriver: true }),
+    ]).start();
+  }, [shakeSignal, shakeX]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -30,21 +61,31 @@ export default function WorkspaceTile({ item, onMove, onRelease, onRemove }: Pro
   ).current;
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.tile,
-        { left: item.x - ITEM_SIZE / 2, top: item.y - ITEM_SIZE / 2 },
+        {
+          left: item.x - ITEM_SIZE / 2,
+          top: item.y - ITEM_SIZE / 2,
+          backgroundColor: theme.tileBg,
+          borderColor: theme.tileBorder,
+          transform: [{ scale }, { translateX: shakeX }],
+        },
       ]}
       {...panResponder.panHandlers}
     >
-      <Pressable style={styles.removeButton} onPress={() => onRemove(item.uid)} hitSlop={8}>
-        <Text style={styles.removeText}>×</Text>
+      <Pressable
+        style={[styles.removeButton, { backgroundColor: theme.removeBg }]}
+        onPress={() => onRemove(item.uid)}
+        hitSlop={8}
+      >
+        <Text style={[styles.removeText, { color: theme.removeText }]}>×</Text>
       </Pressable>
       <Text style={styles.emoji}>{def.emoji}</Text>
-      <Text style={styles.name} numberOfLines={1}>
+      <Text style={[styles.name, { color: theme.tileText }]} numberOfLines={1}>
         {def.name}
       </Text>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -54,7 +95,6 @@ const styles = StyleSheet.create({
     width: ITEM_SIZE,
     height: ITEM_SIZE,
     borderRadius: 16,
-    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -63,7 +103,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#e2ddd3',
     userSelect: 'none',
   },
   emoji: {
@@ -71,7 +110,6 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 12,
-    color: '#4a4438',
     marginTop: 2,
     fontWeight: '600',
     maxWidth: ITEM_SIZE - 12,
@@ -83,12 +121,10 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#c0392b',
     alignItems: 'center',
     justifyContent: 'center',
   },
   removeText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '800',
     lineHeight: 16,

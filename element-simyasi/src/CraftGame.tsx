@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   Dimensions,
   Pressable,
   ScrollView,
@@ -12,19 +13,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_ELEMENT_IDS, combine, ELEMENTS, ElementId } from './elements';
 import { ITEM_SIZE, initialDiscovered, nextUid, overlaps, WorkspaceItem } from './gameLogic';
 import WorkspaceTile from './WorkspaceTile';
+import { useTheme } from './theme';
 
 const DISCOVERED_KEY = 'sonsuz-simya.discovered';
 const WORKSPACE_HEIGHT = Math.min(Dimensions.get('window').height * 0.5, 460);
 const WORKSPACE_WIDTH = Math.min(Dimensions.get('window').width, 480);
 
+type ToastKind = 'discovery' | 'known' | 'none';
+
 export default function CraftGame() {
+  const theme = useTheme();
   const [discovered, setDiscovered] = useState<Set<ElementId>>(() => initialDiscovered());
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<WorkspaceItem[]>([]);
   const [query, setQuery] = useState('');
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; kind: ToastKind } | null>(null);
+  const [shakeUids, setShakeUids] = useState<string[]>([]);
+  const [shakeToken, setShakeToken] = useState(0);
   const spawnCount = useRef(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     AsyncStorage.getItem(DISCOVERED_KEY).then((value) => {
@@ -45,10 +53,16 @@ export default function CraftGame() {
     AsyncStorage.setItem(DISCOVERED_KEY, JSON.stringify([...discovered]));
   }, [discovered, loaded]);
 
-  function showToast(message: string) {
-    setToast(message);
+  function showToast(message: string, kind: ToastKind) {
+    setToast({ message, kind });
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 1800);
+    toastOpacity.setValue(0);
+    Animated.timing(toastOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    toastTimer.current = setTimeout(() => {
+      Animated.timing(toastOpacity, { toValue: 0, duration: 220, useNativeDriver: true }).start(() =>
+        setToast(null)
+      );
+    }, 1600);
   }
 
   function spawnElement(id: ElementId) {
@@ -79,7 +93,9 @@ export default function CraftGame() {
 
       const resultId = combine(moved.elementId, partner.elementId);
       if (!resultId) {
-        showToast('Tepkime yok');
+        setShakeUids([moved.uid, partner.uid]);
+        setShakeToken((t) => t + 1);
+        showToast('Tepkime yok', 'none');
         return prev;
       }
 
@@ -90,7 +106,12 @@ export default function CraftGame() {
         next.add(resultId);
         return next;
       });
-      showToast(isNew ? `Yeni keşif: ${ELEMENTS[resultId].emoji} ${ELEMENTS[resultId].name}` : `${ELEMENTS[resultId].emoji} ${ELEMENTS[resultId].name}`);
+      showToast(
+        isNew
+          ? `Yeni keşif: ${ELEMENTS[resultId].emoji} ${ELEMENTS[resultId].name}`
+          : `${ELEMENTS[resultId].emoji} ${ELEMENTS[resultId].name}`,
+        isNew ? 'discovery' : 'known'
+      );
 
       const resultItem: WorkspaceItem = {
         uid: nextUid(),
@@ -114,55 +135,96 @@ export default function CraftGame() {
     return list;
   }, [discovered, query]);
 
+  const toastBg = toast?.kind === 'none' ? '#b5453880' : theme.toastBg;
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Element Simyası</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: theme.headerTitle }]}>Element Simyası</Text>
+        <Text style={[styles.subtitle, { color: theme.headerSubtitle }]}>
           Keşfedilen: {discovered.size} / {Object.keys(ELEMENTS).length}
         </Text>
       </View>
 
-      <View style={[styles.workspace, { width: WORKSPACE_WIDTH, height: WORKSPACE_HEIGHT }]}>
-        <Pressable style={styles.clearButton} onPress={clearWorkspace}>
-          <Text style={styles.clearButtonText}>Temizle</Text>
+      <View
+        style={[
+          styles.workspace,
+          {
+            width: WORKSPACE_WIDTH,
+            height: WORKSPACE_HEIGHT,
+            backgroundColor: theme.surface,
+            borderColor: theme.surfaceBorder,
+          },
+        ]}
+      >
+        <Pressable
+          style={[styles.clearButton, { backgroundColor: theme.accent }]}
+          onPress={clearWorkspace}
+        >
+          <Text style={[styles.clearButtonText, { color: theme.accentText }]}>Temizle</Text>
         </Pressable>
+        {items.length === 0 && (
+          <>
+            <Text style={[styles.watermark, { color: theme.watermark }]}>⚗️</Text>
+            <Text style={[styles.emptyHint, { color: theme.hintText }]}>
+              Aşağıdan bir element dokun, sonra iki elementi üst üste sürükleyerek birleştir!
+            </Text>
+          </>
+        )}
         {items.map((item) => (
           <WorkspaceTile
             key={item.uid}
             item={item}
+            theme={theme}
+            shakeSignal={shakeUids.includes(item.uid) ? shakeToken : 0}
             onMove={moveItem}
             onRelease={releaseItem}
             onRemove={removeItem}
           />
         ))}
-        {items.length === 0 && (
-          <Text style={styles.emptyHint}>
-            Aşağıdan bir element dokun, sonra iki elementi üst üste sürükleyerek birleştir!
-          </Text>
-        )}
         {toast && (
-          <View style={styles.toast}>
-            <Text style={styles.toastText}>{toast}</Text>
-          </View>
+          <Animated.View
+            style={[styles.toast, { backgroundColor: toastBg, opacity: toastOpacity }]}
+          >
+            <Text
+              style={[
+                styles.toastText,
+                { color: toast.kind === 'none' ? '#fff' : theme.toastText },
+              ]}
+            >
+              {toast.message}
+            </Text>
+          </Animated.View>
         )}
       </View>
 
       <View style={styles.sidebar}>
         <TextInput
-          style={styles.search}
+          style={[
+            styles.search,
+            { backgroundColor: theme.searchBg, borderColor: theme.searchBorder, color: theme.searchText },
+          ]}
           placeholder="Element ara..."
-          placeholderTextColor="#9c9284"
+          placeholderTextColor={theme.searchPlaceholder}
           value={query}
           onChangeText={setQuery}
         />
         <ScrollView contentContainerStyle={styles.chipList}>
           {discoveredList.map((el) => (
-            <Pressable key={el.id} style={styles.chip} onPress={() => spawnElement(el.id)}>
+            <Pressable
+              key={el.id}
+              style={[styles.chip, { backgroundColor: theme.chipBg, borderColor: theme.chipBorder }]}
+              onPress={() => spawnElement(el.id)}
+            >
               <Text style={styles.chipEmoji}>{el.emoji}</Text>
-              <Text style={styles.chipName}>{el.name}</Text>
+              <Text style={[styles.chipName, { color: theme.chipText }]}>{el.name}</Text>
             </Pressable>
           ))}
+          {discoveredList.length === 0 && (
+            <Text style={[styles.noResults, { color: theme.hintText }]}>
+              Eşleşen element bulunamadı
+            </Text>
+          )}
         </ScrollView>
       </View>
     </View>
@@ -173,7 +235,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#f4efe4',
     paddingTop: 16,
   },
   header: {
@@ -183,18 +244,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#4a4438',
   },
   subtitle: {
     fontSize: 13,
-    color: '#8a8071',
     marginTop: 2,
   },
   workspace: {
-    backgroundColor: '#fbf8f1',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e2ddd3',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -202,16 +259,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#4a4438',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
     zIndex: 10,
   },
   clearButtonText: {
-    color: '#fff',
     fontSize: 12,
     fontWeight: '700',
+  },
+  watermark: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    fontSize: 160,
+    transform: [{ translateX: -80 }, { translateY: -110 }],
   },
   emptyHint: {
     position: 'absolute',
@@ -219,7 +281,6 @@ const styles = StyleSheet.create({
     left: 24,
     right: 24,
     textAlign: 'center',
-    color: '#b0a68f',
     fontSize: 14,
   },
   toast: {
@@ -227,14 +288,12 @@ const styles = StyleSheet.create({
     bottom: 12,
     left: 12,
     right: 12,
-    backgroundColor: 'rgba(74, 68, 56, 0.92)',
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 12,
     alignItems: 'center',
   },
   toastText: {
-    color: '#fff',
     fontWeight: '700',
     fontSize: 14,
   },
@@ -245,14 +304,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   search: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e2ddd3',
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 8,
-    color: '#4a4438',
   },
   chipList: {
     flexDirection: 'row',
@@ -261,10 +317,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   chip: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e2ddd3',
     paddingVertical: 8,
     paddingHorizontal: 10,
     alignItems: 'center',
@@ -275,8 +329,11 @@ const styles = StyleSheet.create({
   },
   chipName: {
     fontSize: 11,
-    color: '#4a4438',
     fontWeight: '600',
     marginTop: 2,
+  },
+  noResults: {
+    fontSize: 13,
+    paddingVertical: 8,
   },
 });
