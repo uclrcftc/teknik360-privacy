@@ -1,103 +1,21 @@
 import { useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { MeshDistortMaterial, OrbitControls, Sparkles, Float } from '@react-three/drei';
+import { OrbitControls, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Group, Mesh } from 'three';
+import WaterElement from './elements/WaterElement';
+import FireElement from './elements/FireElement';
+import WindElement from './elements/WindElement';
+import EarthElement from './elements/EarthElement';
 
-interface ElementSpec {
-  id: string;
-  label: string;
-  color: string;
-  emissive: string;
-  radius: number;
-  orbitRadius: number;
-  orbitSpeed: number;
-  spinSpeed: number;
-  yOffset: number;
-  geometry: 'sphere' | 'icosahedron' | 'torus' | 'rock';
-}
+const ORBIT_RADIUS = 2.5;
+// 45° offset keeps every element off the camera's central axis, so nothing
+// ever lines up directly behind the core or straight in front of the lens.
+const ANGLE_OFFSET = Math.PI / 4;
 
-const ELEMENTS: ElementSpec[] = [
-  {
-    id: 'water',
-    label: 'Su',
-    color: '#3fa8e0',
-    emissive: '#0b3a55',
-    radius: 0.62,
-    orbitRadius: 2.5,
-    orbitSpeed: 0.18,
-    spinSpeed: 0.6,
-    yOffset: 0.3,
-    geometry: 'sphere',
-  },
-  {
-    id: 'fire',
-    label: 'Ateş',
-    color: '#e85a2b',
-    emissive: '#7a1c05',
-    radius: 0.56,
-    orbitRadius: 2.5,
-    orbitSpeed: 0.18,
-    spinSpeed: 1.1,
-    yOffset: -0.4,
-    geometry: 'icosahedron',
-  },
-  {
-    id: 'wind',
-    label: 'Rüzgar',
-    color: '#bfe3e8',
-    emissive: '#2d4a4d',
-    radius: 0.5,
-    orbitRadius: 2.5,
-    orbitSpeed: 0.18,
-    spinSpeed: 0.9,
-    yOffset: 0.55,
-    geometry: 'torus',
-  },
-  {
-    id: 'earth',
-    label: 'Toprak',
-    color: '#6d8a4a',
-    emissive: '#233016',
-    radius: 0.66,
-    orbitRadius: 2.5,
-    orbitSpeed: 0.18,
-    spinSpeed: 0.35,
-    yOffset: -0.2,
-    geometry: 'rock',
-  },
-];
-
-function ElementBody({ spec, angle }: { spec: ElementSpec; angle: number }) {
-  const meshRef = useRef<Mesh>(null);
-
-  useFrame((_, delta) => {
-    if (!meshRef.current) return;
-    meshRef.current.rotation.x += delta * spec.spinSpeed * 0.4;
-    meshRef.current.rotation.y += delta * spec.spinSpeed;
-  });
-
-  const x = Math.cos(angle) * spec.orbitRadius;
-  const z = Math.sin(angle) * spec.orbitRadius;
-
-  return (
-    <Float speed={2} rotationIntensity={0.3} floatIntensity={0.8}>
-      <mesh ref={meshRef} position={[x, spec.yOffset, z]} castShadow>
-        {spec.geometry === 'sphere' && <sphereGeometry args={[spec.radius, 48, 48]} />}
-        {spec.geometry === 'icosahedron' && <icosahedronGeometry args={[spec.radius, 1]} />}
-        {spec.geometry === 'torus' && <torusGeometry args={[spec.radius, spec.radius * 0.36, 24, 64]} />}
-        {spec.geometry === 'rock' && <dodecahedronGeometry args={[spec.radius, 0]} />}
-        <MeshDistortMaterial
-          color={spec.color}
-          emissive={spec.emissive}
-          roughness={0.25}
-          metalness={0.15}
-          distort={spec.geometry === 'sphere' ? 0.25 : 0.12}
-          speed={1.4}
-        />
-      </mesh>
-    </Float>
-  );
+function orbitPosition(index: number, total: number, radius: number, y: number): [number, number, number] {
+  const angle = (index / total) * Math.PI * 2 + ANGLE_OFFSET;
+  return [Math.cos(angle) * radius, y, Math.sin(angle) * radius];
 }
 
 function OrbitGroup() {
@@ -109,13 +27,10 @@ function OrbitGroup() {
 
   return (
     <group ref={groupRef}>
-      {ELEMENTS.map((spec, i) => (
-        <ElementBody
-          key={spec.id}
-          spec={spec}
-          angle={(i / ELEMENTS.length) * Math.PI * 2 + Math.PI / 4}
-        />
-      ))}
+      <WaterElement position={orbitPosition(0, 4, ORBIT_RADIUS, 0.25)} />
+      <FireElement position={orbitPosition(1, 4, ORBIT_RADIUS, -0.35)} />
+      <WindElement position={orbitPosition(2, 4, ORBIT_RADIUS, 0.5)} />
+      <EarthElement position={orbitPosition(3, 4, ORBIT_RADIUS, -0.2)} />
     </group>
   );
 }
