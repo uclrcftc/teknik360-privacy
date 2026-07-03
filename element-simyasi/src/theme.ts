@@ -5,6 +5,8 @@ export interface Palette {
   background: string;
   surface: string;
   surfaceBorder: string;
+  surfaceGradient: [string, string, string];
+  gridDot: string;
   headerTitle: string;
   headerSubtitle: string;
   accent: string;
@@ -32,6 +34,8 @@ const light: Palette = {
   background: '#f4efe4',
   surface: '#fbf8f1',
   surfaceBorder: '#e2ddd3',
+  surfaceGradient: ['#fdfbf6', '#f6efe0', '#ecdfc6'],
+  gridDot: 'rgba(138, 109, 74, 0.16)',
   headerTitle: '#4a4438',
   headerSubtitle: '#8a8071',
   accent: '#8a6d4a',
@@ -59,6 +63,8 @@ const dark: Palette = {
   background: '#1c1712',
   surface: '#241d16',
   surfaceBorder: '#3a2f22',
+  surfaceGradient: ['#2a2118', '#221a13', '#160f0a'],
+  gridDot: 'rgba(212, 167, 101, 0.10)',
   headerTitle: '#f3ead9',
   headerSubtitle: '#b3a488',
   accent: '#d4a765',

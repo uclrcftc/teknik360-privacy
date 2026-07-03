@@ -10,9 +10,11 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 import { BASE_ELEMENT_IDS, combine, ELEMENTS, ElementId } from './elements';
 import { ITEM_SIZE, initialDiscovered, nextUid, overlaps, WorkspaceItem } from './gameLogic';
 import WorkspaceTile from './WorkspaceTile';
+import DotGrid from './DotGrid';
 import { useTheme } from './theme';
 
 const DISCOVERED_KEY = 'sonsuz-simya.discovered';
@@ -152,11 +154,17 @@ export default function CraftGame() {
           {
             width: WORKSPACE_WIDTH,
             height: WORKSPACE_HEIGHT,
-            backgroundColor: theme.surface,
             borderColor: theme.surfaceBorder,
           },
         ]}
       >
+        <LinearGradient
+          colors={theme.surfaceGradient}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 0.9, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <DotGrid width={WORKSPACE_WIDTH} height={WORKSPACE_HEIGHT} color={theme.gridDot} />
         <Pressable
           style={[styles.clearButton, { backgroundColor: theme.accent }]}
           onPress={clearWorkspace}
