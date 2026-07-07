@@ -41,6 +41,6 @@
 <p>Bu gizlilik politikası zaman zaman güncellenebilir. Güncellemeler bu sayfada yayınlanacaktır.</p>
 
 <h2>İletişim</h2>
-<p>Gizlilik politikasıyla ilgili sorularınız için: <a href="mailto:ucler61400@gmail.com">ucler61400@gmail.com</a></p>
+<p>Gizlilik politikasıyla ilgili sorularınız için: <a href="mailto:lemon.flickss@gmail.com">lemon.flickss@gmail.com</a></p>
 </body>
 </html>
